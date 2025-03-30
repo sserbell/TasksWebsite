@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        #task-form {
+            margin-bottom: 20px;
+        }
+        #task-list {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .task {
+            border-bottom: 1px solid #eee;
+            padding: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-details {
+            flex-grow: 1;
+        }
+        .schedule {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .schedule-item {
+          border-bottom: 1px solid #eee;
+          padding: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Task Scheduler</h1>
+
+    <div id="task-form">
+        <label for="task-name">Task Name:</label>
+        <input type="text" id="task-name"><br><br>
+
+        <label for="task-duration">Duration (minutes):</label>
+        <input type="number" id="task-duration"><br><br>
+
+        <label for="task-priority">Priority:</label>
+        <select id="task-priority">
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+        </select><br><br>
+
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <div id="task-list">
+        <h2>Task List</h2>
+        <ul id="tasks"></ul>
+    </div>
+
+    <div class="schedule">
+      <h2>Schedule</h2>
+      <ul id="scheduledTasks"></ul>
+    </div>
+
+    <button onclick="generateSchedule()">Generate Schedule</button>
+
+    <script>
+        let tasks = [];
+
+        function addTask() {
+            const name = document.getElementById('task-name').value;
+            const duration = parseInt(document.getElementById('task-duration').value);
+            const priority = document.getElementById('task-priority').value;
+
+            if (name && duration) {
+                tasks.push({ name, duration, priority });
+                displayTasks();
+                document.getElementById('task-name').value = '';
+                document.getElementById('task-duration').value = '';
+            }
+        }
+
+        function displayTasks() {
+            const taskList = document.getElementById('tasks');
+            taskList.innerHTML = '';
+
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = 'task';
+                li.innerHTML = `
+                    <div class="task-details">
+                        <span>${task.name}</span> - <span>${task.duration} mins</span> - <span>${task.priority}</span>
+                    </div>
+                    <button onclick="removeTask(${index})">Remove</button>
+                `;
+                taskList.appendChild(li);
+            });
+        }
+
+        function removeTask(index) {
+            tasks.splice(index, 1);
+            displayTasks();
+        }
+
+        function generateSchedule() {
+          const scheduledTaskList = document.getElementById('scheduledTasks');
+          scheduledTaskList.innerHTML = '';
+          const sortedTasks = [...tasks].sort((a, b) => {
+            const priorityOrder = { high: 0, medium: 1, low: 2 };
+            return priorityOrder[a.priority] - priorityOrder[b.priority] || b.duration - a.duration;
+          });
+
+          let currentTime = new Date();
+          let totalScheduledTime = 0;
+
+          sortedTasks.forEach(task => {
+            const taskStartTime = new Date(currentTime.getTime() + totalScheduledTime * 60000);
+            const li = document.createElement('li');
+            li.className = "schedule-item";
+            li.innerHTML = `${taskStartTime.toLocaleTimeString()} - ${task.name} (${task.duration} mins)`;
+            scheduledTaskList.appendChild(li);
+            totalScheduledTime += task.duration;
+          });
+        }
+
+    </script>
+</body>
+</html>
